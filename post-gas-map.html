@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+
+      #map {
+		width: 100%;
+        height: 600px;
+      }
+
+    </style>
+    <script>
+
+      var map;
+      var infoWindow;
+      var service;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+		  /*中心點*/
+          center: {lat: 24.178847, lng: 120.646679},
+          zoom: 15,
+		  
+		  /*隱藏其他元素*/
+          styles: [{
+            stylers: [{ visibility: 'simplified' }]
+          }, {
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }]
+          }],
+		  /*地圖種類*/
+		  mapTypeId: 'roadmap',
+		  
+		  zoomControl: false,
+		  mapTypeControl: false,
+		  scaleControl: false,
+		  streetViewControl: false,
+		  rotateControl: false,
+		  fullscreenControl: false
+
+        });
+
+        infoWindow = new google.maps.InfoWindow();
+        service = new google.maps.places.PlacesService(map);
+		
+        map.addListener('idle', performSearch);
+      }
+
+      function performSearch() {
+	    /*關鍵字搜尋*/
+        var request = {
+          bounds: map.getBounds(),
+          keyword: 'gas station',
+		  radius: '50',
+
+        };
+		var request2 = {
+          bounds: map.getBounds(),
+          keyword: 'post office',
+		  radius: '50'
+		
+        };
+        service.radarSearch(request, callback);
+		service.radarSearch(request2, callback2);
+      }
+
+      function callback(results, status) {
+		/*錯誤回傳*/
+        if (status !== google.maps.places.PlacesServiceStatus.OK) {
+          console.error(status);
+          return;
+        }
+		/*新增標記*/
+        for (var i = 0, result; result = results[i]; i++) {
+			addGasStationMarker(result);
+        }
+      }
+	  
+	  function callback2(results, status) {
+		/*錯誤回傳*/
+        if (status !== google.maps.places.PlacesServiceStatus.OK) {
+          console.error(status);
+          return;
+        }
+		/*新增標記*/
+        for (var i = 0, result; result = results[i]; i++) {
+			addPostOfficeMarker(result);
+        }
+      }
+	  
+	  /*新增郵局標記*/
+      function addPostOfficeMarker(place) {
+        var marker = new google.maps.Marker({
+          map: map,
+          position: place.geometry.location,
+          icon: {
+            url: 'post office.png',
+            anchor: new google.maps.Point(10, 10),
+
+          }
+        });
+		/*觸碰顯示資訊*/
+        google.maps.event.addListener(marker, 'mouseover', function() {
+          service.getDetails(place, function(result, status) {
+            if (status !== google.maps.places.PlacesServiceStatus.OK) {
+              console.error(status);
+              return;
+            }
+			/*顯示店名*/
+            infoWindow.setContent(result.name);
+            infoWindow.open(map, marker);
+          });
+        });
+      }
+	  
+	  /*新增加油站標記*/
+	  function addGasStationMarker(place) {
+        var marker = new google.maps.Marker({
+          map: map,
+          position: place.geometry.location,
+          icon: {
+            url: 'gas station.png',
+            anchor: new google.maps.Point(10, 10),
+
+          }
+        });
+		/*觸碰顯示資訊*/
+        google.maps.event.addListener(marker, 'mouseover', function() {
+          service.getDetails(place, function(result, status) {
+            if (status !== google.maps.places.PlacesServiceStatus.OK) {
+              console.error(status);
+              return;
+            }
+			/*顯示店名*/
+            infoWindow.setContent(result.name);
+            infoWindow.open(map, marker);
+          });
+        });
+      }
+	
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPXJPhbG6aP_MQ5wf-2CH2k2LoODjZ7pI&callback=initMap&libraries=places,visualization" async defer></script>
+  </body>
+</html>
